@@ -136,4 +136,4 @@ println!("&a * 5 = {:?}", &a * 5); //&a * 5 = Pair(60, 15)
 ```
 
 # Docs
-For more details see docs.
+For more details see [docs](https://docs.rs/gen_ops).
