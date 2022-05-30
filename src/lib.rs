@@ -151,6 +151,7 @@
 //! - Supports generics
 //! 
 //! ## Limitations
+//! - Nested Parameters (e.g <T<U>>) not supported yet
 //! - Not tested for generics involving lifetime parameters
 //! - The macros are recursive
 //! 

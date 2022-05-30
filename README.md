@@ -138,6 +138,13 @@ println!("&a * 5 = {:?}", &a * 5); //&a * 5 = Pair(60, 15)
 # Docs
 For more details see [docs](https://docs.rs/gen_ops).
 
+# Roadmap
+To do:
+- [ ] Nested Generic Parameters
+- [ ] Lifetime Parameters
+- [ ] `PartialOrd` implementation
+
+
 # Inspiration
 
 This project is inspired by [auto_ops](https://crates.io/crates/auto_ops)
