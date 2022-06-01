@@ -9,8 +9,8 @@ The macros need four statements
 3. Callable expressions for each operator
 4. (Optional) Where clause for generic parameters
 
-> **Note:** All statements end with a semicolon except the where clause.
-
+> **Note** 
+> All statements end with a semicolon except the where clause.
 
 ## Example
 
@@ -140,10 +140,12 @@ For more details see [docs](https://docs.rs/gen_ops).
 
 # Roadmap
 To do:
-- [ ] Nested Generic Parameters
-- [ ] Lifetime Parameters
-- [ ] `PartialOrd` implementation
+- [ ] Const generic parameters
+- [ ] Lifetime parameters
+- [ ] Better testing
 
+> **Warning**
+> The vesions 0.1.x might not be compatible with each other
 
 # Inspiration
 
