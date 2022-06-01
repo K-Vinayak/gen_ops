@@ -5,10 +5,10 @@
 //! 
 //! The macros need four statements 
 //! 
-//! 1. (Optional) Generic parameter names
-//! 2. Type signature or extended type signature
-//! 3. Callable expressions for each operator
-//! 4. (Optional) Where clause for generic parameters
+//! 1. (Optional) Generic parameter names ([See](crate#1-generic-parameter-names))
+//! 2. Type signature or extended type signature([See](crate#2-type-signature-or-extended-type-signature))
+//! 3. Callable expressions for each operator([See](crate#3-callable-expressions-for-each-operator))
+//! 4. (Optional) Where clause for generic parameters([See](crate#4-where-clause-for-generic-parameters))
 //! 
 //! > **Note:** All statements end with a semicolon except the where clause.
 //! 
@@ -67,6 +67,58 @@
 //! }
 //! ```
 //! 
+//! ### Lifetime params
+//! 
+//! Lifetime params are added just before the type parameters.
+//! 
+//! ```rust, ignore
+//! gen_ops!(
+//!     <'a, 'b, T, U, V>;
+//!     .....
+//! );
+//! 
+//! // results in
+//! 
+//! impl<'a, 'b, T, U, V> .... {
+//!     ....
+//! }
+//! ```
+//! 
+//! ### Const params
+//! 
+//! To add const params add a `|` followed by the const parameters. The const params must be at the end 
+//! and `|` is mandatory even if the const params are the only parameters. 
+//! 
+//! ```rust, ignore
+//! gen_ops!(
+//!     <T, U, V | const SZ:usize, const DEF: i32>;
+//!     .....
+//! );
+//! 
+//! // results in
+//! 
+//! impl<T, U, V, const SZ: usize, const DEF: i32> .... {
+//!     ....
+//! }
+//! 
+//! //and 
+//! gen_ops!(
+//!     <| const SZ:usize, const DEF: i32>; // `|` is mandatory
+//!     .....
+//! );
+//! 
+//! // results in
+//! 
+//! impl<const SZ: usize, const DEF: i32> .... {
+//!     ....
+//! }
+//! 
+//! ```
+//! 
+//! ### Constraints
+//! 
+//! Type constraints are not supported. Use where clause instead.
+//! 
 //! 
 //! ## 2. Type signature or extended type signature 
 //! 
@@ -95,7 +147,7 @@
 //! 
 //! ## 3. Callable expressions for each operator
 //! 
-//! Callable expressions are written as `for <operator> call <expr>;`
+//! Callable expression statements are written as `for <operator> call <expr>;`
 //! 
 //! The expression can be a closure or a function. 
 //! 
@@ -129,6 +181,7 @@
 //! 
 //! Optionally you can add a where clause as the last statement.
 //! Note that the where clause does not end with a semicolon
+//! 
 //! ```rust, ignore
 //! gen_ops!(
 //!     <T>;
@@ -151,10 +204,8 @@
 //! - Supports generics
 //! 
 //! ## Limitations
-//! - Nested Parameters (e.g <T<U>>) not supported yet
-//! - Not tested for generics involving lifetime parameters
-//! - The macros are recursive
-//! 
+//! - These macros use [TT munching](https://veykril.github.io/tlborm/decl-macros/patterns/tt-muncher.html)
+//! which slows down compilation.
 //! 
 //! # Quick Reference Tables
 //! 
@@ -163,23 +214,23 @@
 //! | Macro                | Type sign. | Lhs type sign.        | Rhs type sign.        | `Lhs` = `Rhs` |
 //! |:---------------------|:----------:|:---------------------:|:---------------------:|:-------------:|
 //! | [`gen_ops!`]         | borrowed   | `L`, `&L`, `&mut L`   | `R`, `&R`, `&mut R`   | allowed       |
-//! | [`gen_ops_ex!`]      | extended   | `L`, `ref L`, `mut L` | `R`, `ref R`, `mut R` | allowed       |
+//! | [`gen_ops_ex!`]      | [extended][exts]   | `L`, `ref L`, `mut L` | `R`, `ref R`, `mut R` | allowed       |
 //! | [`gen_ops_comm!`]    | borrowed   | `L`, `&L`, `&mut L`   | `R`, `&R`, `&mut R`   | not allowed   |
-//! | [`gen_ops_comm_ex!`] | extended   | `L`, `ref L`, `mut L` | `R`, `ref R`, `mut R` | not allowed   |
+//! | [`gen_ops_comm_ex!`] | [extended][exts]   | `L`, `ref L`, `mut L` | `R`, `ref R`, `mut R` | not allowed   |
 //! 
 //! ## Assignment
 //! 
-//! | Macro                | Type sign. | Lhs type sign. | Rhs type sign. | `Lhs` = `Rhs` |
-//! |:---------------------|:----------:|:--------------:|:--------------:|:-------------:|
-//! | [`gen_ops!`]         | borrowed   | `L`, `&mut L`  | `R`, `&mut R`  | allowed       |
-//! | [`gen_ops_ex!`]      | extended   | `L`, `mut L`   | `R`, `mut R`   | allowed       |
+//! | Macro                | Type sign. | Lhs type sign. | Rhs type sign. |
+//! |:---------------------|:----------:|:--------------:|:--------------:|
+//! | [`gen_ops!`]         | borrowed   | `L`, `&mut L`  | `R`, `&mut R`  |
+//! | [`gen_ops_ex!`]      | [extended][exts]   | `L`, `mut L`   | `R`, `mut R`   |
 //! 
 //! ## Unary
 //! 
 //! | Macro                | Type sign. | Lhs type sign.        |
 //! |:---------------------|:----------:|:---------------------:|
 //! | [`gen_ops!`]         | borrowed   | `L`, `&L`, `&mut L`   |
-//! | [`gen_ops_ex!`]      | extended   | `L`, `ref L`, `mut L` |
+//! | [`gen_ops_ex!`]      | [extended][exts]   | `L`, `ref L`, `mut L` |
 //! 
 //! ## Closure/function
 //! 
@@ -189,6 +240,8 @@
 //! | assign   | `&mut Lhs` | `&Rhs` | `()`   |
 //! | unary    | `&Lhs`     | -      | `Out`  |
 //! 
+//! 
+//! [exts]: crate#what-is-extended-type-signature
 
 #[macro_use]
 mod util;
@@ -251,91 +304,94 @@ mod gen_ops_asgn;
 /// 
 #[macro_export]
 macro_rules! gen_ops {
+    ($(<$($($lt:lifetime),+)? $(,)? $($($gen:ident),+)? $(| $(const $C:ident : $Ct:ty),+)?>;)? types $($rest:tt)+) => {
+        gen_ops!(@step1 ($(<$($($lt),+,)? $($($gen),+ ,)? $($(const $C : $Ct),+)?>)?); types $($rest)+);
+    };
     //binary
-    ($(<$($T:tt),+>;)? types $lhs:ty, $rhs:ty => $out:ty;
+    (@step1 ($($gen:tt)*); types $lhs:ty, $rhs:ty => $out:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs own own;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types &$lhs:ty, $rhs:ty => $out:ty;
+    (@step1 ($($gen:tt)*); types &$lhs:ty, $rhs:ty => $out:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs ref_ own;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types $lhs:ty, &$rhs:ty => $out:ty;
+    (@step1 ($($gen:tt)*); types $lhs:ty, &$rhs:ty => $out:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs own ref_;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)?types &$lhs:ty, &$rhs:ty => $out:ty;
+    (@step1 ($($gen:tt)*);types &$lhs:ty, &$rhs:ty => $out:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs ref_ ref_;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types &mut $lhs:ty, $rhs:ty => $out:ty;
+    (@step1 ($($gen:tt)*); types &mut $lhs:ty, $rhs:ty => $out:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs mut_ own;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types $lhs:ty, &mut $rhs:ty => $out:ty;
+    (@step1 ($($gen:tt)*); types $lhs:ty, &mut $rhs:ty => $out:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs own mut_;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types &mut $lhs:ty, &mut $rhs:ty => $out:ty;
+    (@step1 ($($gen:tt)*); types &mut $lhs:ty, &mut $rhs:ty => $out:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs mut_ mut_;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types &mut $lhs:ty, &$rhs:ty => $out:ty;
+    (@step1 ($($gen:tt)*); types &mut $lhs:ty, &$rhs:ty => $out:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs mut_ ref_;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types &$lhs:ty, &mut $rhs:ty => $out:ty;
+    (@step1 ($($gen:tt)*); types &$lhs:ty, &mut $rhs:ty => $out:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs ref_ mut_;
             $(for $op call $func;)+
@@ -344,60 +400,60 @@ macro_rules! gen_ops {
     };
 
     //assign
-    ($(<$($T:tt),+>;)? types $lhs:ty, $rhs:ty;
+    (@step1 ($($gen:tt)*); types $lhs:ty, $rhs:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs own own;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types $lhs:ty, &$rhs:ty;
+    (@step1 ($($gen:tt)*); types $lhs:ty, &$rhs:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs own ref_;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types $lhs:ty, &mut $rhs:ty;
+    (@step1 ($($gen:tt)*); types $lhs:ty, &mut $rhs:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs own mut_;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types mut $lhs:ty, $rhs:ty;
+    (@step1 ($($gen:tt)*); types mut $lhs:ty, $rhs:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs mut_ own;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types mut $lhs:ty, &$rhs:ty;
+    (@step1 ($($gen:tt)*); types mut $lhs:ty, &$rhs:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs mut_ ref_;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types mut $lhs:ty, &mut $rhs:ty;
+    (@step1 ($($gen:tt)*); types mut $lhs:ty, &mut $rhs:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs mut_ mut_;
             $(for $op call $func;)+
@@ -406,30 +462,30 @@ macro_rules! gen_ops {
     };
 
     //unary
-    ($(<$($T:tt),+>;)? types $lhs:ty => $output:ty;
+    (@step1 ($($gen:tt)*); types $lhs:ty => $output:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_un!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs => $output;
             refs own;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types &$lhs:ty => $output:ty;
+    (@step1 ($($gen:tt)*); types &$lhs:ty => $output:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_un!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs => $output;
             refs ref_;
             $(for $op call $func;)+
             $(where $($where)+)?
         );
     };
-    ($(<$($T:tt),+>;)? types &mut$lhs:ty => $output:ty;
+    (@step1 ($($gen:tt)*); types &mut$lhs:ty => $output:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_un!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs => $output;
             refs mut_;
             $(for $op call $func;)+
@@ -485,52 +541,55 @@ macro_rules! gen_ops {
 /// 
 #[macro_export]
 macro_rules! gen_ops_comm {
-    ($(<$($T:tt),+>;)? types $lhs:ty, $($rest:tt)+) => {
-        $crate::gen_ops_comm!(_step2; $(<$($T),+>;)? types own: $lhs, $($rest)+);
+    ($(<$($($lt:lifetime),+)? $(,)? $($($gen:ident),+)? $(| $(const $C:ident : $Ct:ty),+)?>;)? types $($rest:tt)+) => {
+        gen_ops_comm!(@step1 ($(<$($($lt),+,)? $($($gen),+ ,)? $($(const $C : $Ct),+)?>)?); types $($rest)+);
     };
-    ($(<$($T:tt),+>;)? types &$lhs:ty, $($rest:tt)+) => {
-        $crate::gen_ops_comm!(_step2; $(<$($T),+>;)? types ref_: $lhs, $($rest)+);
+    (@step1 ($($gen:tt)*); types $lhs:ty, $($rest:tt)+) => {
+        $crate::gen_ops_comm!(@step2 ($($gen)*); types own: $lhs, $($rest)+);
     };
-    ($(<$($T:tt),+>;)? types &mut $lhs:ty, $($rest:tt)+) => {
-        $crate::gen_ops_comm!(_step2; $(<$($T),+>;)? types mut_: $lhs, $($rest)+);
+    (@step1 ($($gen:tt)*); types &$lhs:ty, $($rest:tt)+) => {
+        $crate::gen_ops_comm!(@step2 ($($gen)*); types ref_: $lhs, $($rest)+);
     };
-    (_step2; $(<$($T:tt),+>;)? types $lref:ident: $lhs:ty, $rhs:ty => $out:ty; $($rest:tt)+) => {
+    (@step1 ($($gen:tt)*); types &mut $lhs:ty, $($rest:tt)+) => {
+        $crate::gen_ops_comm!(@step2 ($($gen)*); types mut_: $lhs, $($rest)+);
+    };
+    (@step2 ($($gen:tt)*); types $lref:ident: $lhs:ty, $rhs:ty => $out:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? 
+            ($($gen)*); 
             types $lhs, $rhs => $out; 
             refs $lref own;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? 
+            ($($gen)*); 
             types $rhs, $lhs => $out; 
             refs own $lref rev;
             $($rest)+
         );
     };
-    (_step2; $(<$($T:tt),+>;)? types $lref:ident: $lhs:ty, &$rhs:ty => $out:ty; $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types $lref:ident: $lhs:ty, &$rhs:ty => $out:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? 
+            ($($gen)*); 
             types $lhs, $rhs => $out; 
             refs $lref ref_;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? 
+            ($($gen)*); 
             types $rhs, $lhs => $out; 
             refs ref_ $lref rev;
             $($rest)+
         );
     };
-    (_step2; $(<$($T:tt),+>;)? types $lref:ident: $lhs:ty, &mut $rhs:ty => $out:ty; $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types $lref:ident: $lhs:ty, &mut $rhs:ty => $out:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? 
+            ($($gen)*); 
             types $lhs, $rhs => $out; 
             refs $lref mut_;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? 
+            ($($gen)*); 
             types $rhs, $lhs => $out; 
             refs mut_ $lref rev;
             $($rest)+
@@ -588,62 +647,65 @@ macro_rules! gen_ops_comm {
 /// [extended]: crate#2-type-signature-or-extended-type-signature
 #[macro_export]
 macro_rules! gen_ops_ex {
-    ($(<$($T:tt),+>;)? types $lhs:ty, $($rest:tt)+) => {
-        $crate::gen_ops_ex!(_step2; $(<$($T),+>;)? types own: $lhs, $($rest)+);
+    ($(<$($($lt:lifetime),+)? $(,)? $($($gen:ident),+)? $(| $(const $C:ident : $Ct:ty),+)?>;)? types $($rest:tt)+) => {
+        gen_ops_ex!(@step1 ($(<$($($lt),+,)? $($($gen),+ ,)? $($(const $C : $Ct),+)?>)?); types $($rest)+);
     };
-    ($(<$($T:tt),+>;)? types ref $lhs:ty, $($rest:tt)+) => {
-        $crate::gen_ops_ex!(_step2; $(<$($T),+>;)? types ref_: $lhs, $($rest)+);
-        $crate::gen_ops_ex!(_step2; $(<$($T),+>;)? types own: $lhs, $($rest)+);
+    (@step1 ($($gen:tt)*); types $lhs:ty, $($rest:tt)+) => {
+        $crate::gen_ops_ex!(@step2 ($($gen)*); types own: $lhs, $($rest)+);
     };
-    ($(<$($T:tt),+>;)? types mut $lhs:ty, $($rest:tt)+) => {
-        $crate::gen_ops_ex!(_step2; $(<$($T),+>;)? types mut_: $lhs, $($rest)+);
-        $crate::gen_ops_ex!(_step2; $(<$($T),+>;)? types ref_: $lhs, $($rest)+);
-        $crate::gen_ops_ex!(_step2; $(<$($T),+>;)? types own: $lhs, $($rest)+);
+    (@step1 ($($gen:tt)*); types ref $lhs:ty, $($rest:tt)+) => {
+        $crate::gen_ops_ex!(@step2 ($($gen)*); types ref_: $lhs, $($rest)+);
+        $crate::gen_ops_ex!(@step2 ($($gen)*); types own: $lhs, $($rest)+);
     };
-    ($(<$($T:tt),+>;)? types mut $lhs:ty, $($rest:tt)+) => {
-        $crate::gen_ops_ex!(_step2; $(<$($T),+>;)? types mut_: $lhs, $($rest)+);
-        $crate::gen_ops_ex!(_step2; $(<$($T),+>;)? types ref_: $lhs, $($rest)+);
-        $crate::gen_ops_ex!(_step2; $(<$($T),+>;)? types own: $lhs, $($rest)+);
+    (@step1 ($($gen:tt)*); types mut $lhs:ty, $($rest:tt)+) => {
+        $crate::gen_ops_ex!(@step2 ($($gen)*); types mut_: $lhs, $($rest)+);
+        $crate::gen_ops_ex!(@step2 ($($gen)*); types ref_: $lhs, $($rest)+);
+        $crate::gen_ops_ex!(@step2 ($($gen)*); types own: $lhs, $($rest)+);
+    };
+    (@step1 ($($gen:tt)*); types mut $lhs:ty, $($rest:tt)+) => {
+        $crate::gen_ops_ex!(@step2 ($($gen)*); types mut_: $lhs, $($rest)+);
+        $crate::gen_ops_ex!(@step2 ($($gen)*); types ref_: $lhs, $($rest)+);
+        $crate::gen_ops_ex!(@step2 ($($gen)*); types own: $lhs, $($rest)+);
     };
 
     //binary
-    (_step2; $(<$($T:tt),+>;)? types $lref:ident: $lhs:ty, $rhs:ty => $out:ty; $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types $lref:ident: $lhs:ty, $rhs:ty => $out:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs $lref own;
             $($rest)+
         );
     };
-    (_step2; $(<$($T:tt),+>;)? types $lref:ident: $lhs:ty, ref $rhs:ty => $out:ty; $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types $lref:ident: $lhs:ty, ref $rhs:ty => $out:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs $lref ref_;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs $lref own;
             $($rest)+
         );
     };
-    (_step2; $(<$($T:tt),+>;)? types $lref:ident: $lhs:ty, mut $rhs:ty => $out:ty; $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types $lref:ident: $lhs:ty, mut $rhs:ty => $out:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs $lref mut_;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs $lref ref_;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs => $out;
             refs $lref own;
             $($rest)+
@@ -651,132 +713,132 @@ macro_rules! gen_ops_ex {
     };
 
     //assign
-    (_step2; $(<$($T:tt),+>;)? types own: $lhs:ty, $rhs:ty; $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types own: $lhs:ty, $rhs:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs own own;
             $($rest)+
         );
     };
-    (_step2; $(<$($T:tt),+>;)? types own: $lhs:ty, ref $rhs:ty; $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types own: $lhs:ty, ref $rhs:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs own ref_;
             $($rest)+
         );
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs own own;
             $($rest)+
         );
     };
-    (_step2; $(<$($T:tt),+>;)? types own: $lhs:ty, mut $rhs:ty; $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types own: $lhs:ty, mut $rhs:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs own mut_;
             $($rest)+
         );
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs own ref_;
             $($rest)+
         );
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs own own;
             $($rest)+
         );
     };
-    (_step2; $(<$($T:tt),+>;)? types mut_: $lhs:ty, $rhs:ty; $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types mut_: $lhs:ty, $rhs:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs mut_ own;
             $($rest)+
         );
     };
-    (_step2; $(<$($T:tt),+>;)? types mut_: $lhs:ty, ref $rhs:ty; $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types mut_: $lhs:ty, ref $rhs:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs mut_ ref_;
             $($rest)+
         );
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs mut_ own;
             $($rest)+
         );
     };
-    (_step2; $(<$($T:tt),+>;)? types mut_: $lhs:ty, mut $rhs:ty; $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types mut_: $lhs:ty, mut $rhs:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs mut_ mut_;
             $($rest)+
         );
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs mut_ ref_;
             $($rest)+
         );
         $crate::_gen_ops_internal_asgn!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs, $rhs;
             refs mut_ own;
             $($rest)+
         );
     };
-    (_step2; $(<$($T:tt),+>;)? types ref_: $lhs:ty, mut $rhs:ty; $($rest:tt)+) => {};
-    (_step2; $(<$($T:tt),+>;)? types ref_: $lhs:ty, ref $rhs:ty; $($rest:tt)+) => {};
-    (_step2; $(<$($T:tt),+>;)? types ref_: $lhs:ty, $rhs:ty; $($rest:tt)+) => {};
+    (@step2 ($($gen:tt)*); types ref_: $lhs:ty, mut $rhs:ty; $($rest:tt)+) => {};
+    (@step2 ($($gen:tt)*); types ref_: $lhs:ty, ref $rhs:ty; $($rest:tt)+) => {};
+    (@step2 ($($gen:tt)*); types ref_: $lhs:ty, $rhs:ty; $($rest:tt)+) => {};
 
     //unary
-    ($(<$($T:tt),+>;)? types $lhs:ty => $out:ty; $($rest:tt)+) => {
+    (@step1 ($($gen:tt)*); types $lhs:ty => $out:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_un!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs => $out;
             refs own;
             $($rest)+
         );
     };
-    ($(<$($T:tt),+>;)? types ref $lhs:ty => $out:ty; $($rest:tt)+) => {
+    (@step1 ($($gen:tt)*); types ref $lhs:ty => $out:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_un!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs => $out;
             refs ref_;
             $($rest)+
         );
         $crate::_gen_ops_internal_un!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs => $out;
             refs own;
             $($rest)+
         );
     };
-    ($(<$($T:tt),+>;)? types mut $lhs:ty => $out:ty; $($rest:tt)+) => {
+    (@step1 ($($gen:tt)*); types mut $lhs:ty => $out:ty; $($rest:tt)+) => {
         $crate::_gen_ops_internal_un!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs => $out;
             refs mut_;
             $($rest)+
         );
         $crate::_gen_ops_internal_un!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs => $out;
             refs ref_;
             $($rest)+
         );
         $crate::_gen_ops_internal_un!(
-            $(<$($T),+>;)?
+            ($($gen)*);
             types $lhs => $out;
             refs own;
             $($rest)+
@@ -829,80 +891,83 @@ macro_rules! gen_ops_ex {
 /// [extended]: crate#2-type-signature-or-extended-type-signature
 #[macro_export]
 macro_rules! gen_ops_comm_ex {
-    ($(<$($T:tt),+>;)? types $lhs:ty,  $($rest:tt)+) => {
-        $crate::gen_ops_comm_ex!(_step2; $(<$($T),+>;)? types own: $lhs, $($rest)+);
+    ($(<$($($lt:lifetime),+)? $(,)? $($($gen:ident),+)? $(| $(const $C:ident : $Ct:ty),+)?>;)? types $($rest:tt)+) => {
+        gen_ops_comm_ex!(@step1 ($(<$($($lt),+,)? $($($gen),+ ,)? $($(const $C : $Ct),+)?>)?); types $($rest)+);
     };
-    ($(<$($T:tt),+>;)? types ref $lhs:ty,  $($rest:tt)+) => {
-        $crate::gen_ops_comm_ex!(_step2; $(<$($T),+>;)? types ref_: $lhs, $($rest)+);
-        $crate::gen_ops_comm_ex!(_step2; $(<$($T),+>;)? types own: $lhs, $($rest)+);
+    (@step1 ($($gen:tt)*); types $lhs:ty,  $($rest:tt)+) => {
+        $crate::gen_ops_comm_ex!(@step2 ($($gen)*); types own: $lhs, $($rest)+);
     };
-    ($(<$($T:tt),+>;)? types mut $lhs:ty,  $($rest:tt)+) => {
-        $crate::gen_ops_comm_ex!(_step2; $(<$($T),+>;)? types mut_: $lhs, $($rest)+);
-        $crate::gen_ops_comm_ex!(_step2; $(<$($T),+>;)? types ref_: $lhs, $($rest)+);
-        $crate::gen_ops_comm_ex!(_step2; $(<$($T),+>;)? types own: $lhs, $($rest)+);
+    (@step1 ($($gen:tt)*); types ref $lhs:ty,  $($rest:tt)+) => {
+        $crate::gen_ops_comm_ex!(@step2 ($($gen)*); types ref_: $lhs, $($rest)+);
+        $crate::gen_ops_comm_ex!(@step2 ($($gen)*); types own: $lhs, $($rest)+);
     };
-    (_step2; $(<$($T:tt),+>;)? types $lref:ident: $lhs:ty, $rhs:ty => $out:ty;  $($rest:tt)+) => {
+    (@step1 ($($gen:tt)*); types mut $lhs:ty,  $($rest:tt)+) => {
+        $crate::gen_ops_comm_ex!(@step2 ($($gen)*); types mut_: $lhs, $($rest)+);
+        $crate::gen_ops_comm_ex!(@step2 ($($gen)*); types ref_: $lhs, $($rest)+);
+        $crate::gen_ops_comm_ex!(@step2 ($($gen)*); types own: $lhs, $($rest)+);
+    };
+    (@step2 ($($gen:tt)*); types $lref:ident: $lhs:ty, $rhs:ty => $out:ty;  $($rest:tt)+) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? types $lhs, $rhs => $out;
+            ($($gen)*); types $lhs, $rhs => $out;
             refs $lref own;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? types $rhs, $lhs => $out;
+            ($($gen)*); types $rhs, $lhs => $out;
             refs own $lref rev;
             $($rest)+
         );
     };
-    (_step2; $(<$($T:tt),+>;)? types $lref:ident: $lhs:ty, ref $rhs:ty => $out:ty;  $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types $lref:ident: $lhs:ty, ref $rhs:ty => $out:ty;  $($rest:tt)+) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? types $lhs, $rhs => $out;
+            ($($gen)*); types $lhs, $rhs => $out;
             refs $lref ref_;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? types $rhs, $lhs => $out;
+            ($($gen)*); types $rhs, $lhs => $out;
             refs ref_ $lref rev;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? types $lhs, $rhs => $out;
+            ($($gen)*); types $lhs, $rhs => $out;
             refs $lref own;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? types $rhs, $lhs => $out;
+            ($($gen)*); types $rhs, $lhs => $out;
             refs own $lref rev;
             $($rest)+
         );
     };
-    (_step2; $(<$($T:tt),+>;)? types $lref:ident: $lhs:ty, mut $rhs:ty => $out:ty;  $($rest:tt)+) => {
+    (@step2 ($($gen:tt)*); types $lref:ident: $lhs:ty, mut $rhs:ty => $out:ty;  $($rest:tt)+) => {
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? types $lhs, $rhs => $out;
+            ($($gen)*); types $lhs, $rhs => $out;
             refs $lref mut_;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? types $rhs, $lhs => $out;
+            ($($gen)*); types $rhs, $lhs => $out;
             refs mut_ $lref rev;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? types $lhs, $rhs => $out;
+            ($($gen)*); types $lhs, $rhs => $out;
             refs $lref ref_;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? types $rhs, $lhs => $out;
+            ($($gen)*); types $rhs, $lhs => $out;
             refs ref_ $lref rev;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? types $lhs, $rhs => $out;
+            ($($gen)*); types $lhs, $rhs => $out;
             refs $lref own;
             $($rest)+
         );
         $crate::_gen_ops_internal_bin!(
-            $(<$($T),+>;)? types $rhs, $lhs => $out;
+            ($($gen)*); types $rhs, $lhs => $out;
             refs own $lref rev;
             $($rest)+
         );

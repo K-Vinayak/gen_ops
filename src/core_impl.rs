@@ -1,12 +1,12 @@
 #[doc(hidden)]
 #[macro_export]
 macro_rules! _core_impl_bin {
-    ($(<$($T:tt),+>;)?
+    (($($gen:tt)*);
     types $lhs:ty, $rhs:ty => $out:ty;
     refs $lref:ident $rref:ident $($rev:ident)?;
     for [$trait:ident $method:ident] call $func:expr;
     $(where $($where:tt)+)?) => {
-        impl $(<$($T),+>)? ::std::ops::$trait<$crate::_refmut!($rref $rhs)> for $crate::_refmut!($lref $lhs)
+        impl $($gen)* ::std::ops::$trait<$crate::_refmut!($rref $rhs)> for $crate::_refmut!($lref $lhs)
         $(where $($where)+)? {
             type Output = $out;
             #[inline]
@@ -20,12 +20,12 @@ macro_rules! _core_impl_bin {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! _core_impl_asgn {
-    ($(<$($T:tt),+>;)?
+    (($($gen:tt)*);
     types $lhs:ty, $rhs:ty;
     refs $lref:ident $rref:ident;
     for [$trait:ident $method:ident] call $func:expr;
     $(where $($where:tt)+)?) => {
-        impl $(<$($T),+>)? ::std::ops::$trait<$crate::_refmut!($rref $rhs)> for $crate::_refmut!($lref $lhs)
+        impl $($gen)* ::std::ops::$trait<$crate::_refmut!($rref $rhs)> for $crate::_refmut!($lref $lhs)
         $(where $($where)+)? {
             #[inline]
             fn $method(&mut self, rhs: $crate::_refmut!($rref $rhs)) {
@@ -38,12 +38,12 @@ macro_rules! _core_impl_asgn {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! _core_impl_un {
-    ($(<$($T:tt),+>;)?
+    (($($gen:tt)*);
     types $lhs:ty => $out:ty;
     refs $lref:ident;
     for [$trait:ident $method:ident] call $func:expr;
     $(where $($where:tt)+)?) => {
-        impl $(<$($T),+>)? std::ops::$trait for $crate::_refmut!($lref $lhs)
+        impl $($gen)* std::ops::$trait for $crate::_refmut!($lref $lhs)
         $(where $($where)+)? {
             type Output = $out;
             #[inline]
