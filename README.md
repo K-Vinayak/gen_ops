@@ -143,6 +143,7 @@ To do:
 - [ ] Const generic parameters
 - [ ] Lifetime parameters
 - [ ] Better testing
+- [ ] Adding github wiki
 
 > **Warning**
 > The vesions 0.1.x might not be compatible with each other
