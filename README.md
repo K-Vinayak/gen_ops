@@ -140,7 +140,7 @@ For more details see [docs](https://docs.rs/gen_ops).
 
 # Roadmap
 To do:
-- [ ] Const generic parameters
+- [x] Const generic parameters
 - [ ] Lifetime parameters
 - [ ] Better testing
 - [ ] Adding github wiki
