@@ -1,4 +1,4 @@
-//these modules are only to check whether it compiles
+//purpose of these modules is only to check whether they compile
 
 use gen_ops::*;
 use std::ops::*;

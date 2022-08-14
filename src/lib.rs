@@ -307,6 +307,7 @@ macro_rules! gen_ops {
     ($(<$($($lt:lifetime),+)? $(,)? $($($gen:ident),+)? $(| $(const $C:ident : $Ct:ty),+)?>;)? types $($rest:tt)+) => {
         gen_ops!(@step1 ($(<$($($lt),+,)? $($($gen),+ ,)? $($(const $C : $Ct),+)?>)?); types $($rest)+);
     };
+
     //binary
     (@step1 ($($gen:tt)*); types $lhs:ty, $rhs:ty => $out:ty;
     $(for $op:tt call $func:expr;)+ $(where $($where:tt)+)?) => {

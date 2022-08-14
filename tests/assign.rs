@@ -1,472 +1,269 @@
-mod all_ops_own {
-    use gen_ops::gen_ops;
-    
-    #[derive(Copy, Clone, PartialEq, Debug)]
-    struct Pair(pub i32, pub i32);
+//#![trace_macros]
+//trace_macros!(true);
 
-    gen_ops!(
-        types Pair, i32;
-        for += call |a:&mut Pair, b:&i32| {
-            a.0 += b;
-            a.1 += b;
-        };
-        for -= call |a:&mut Pair, b:&i32| {
-            a.0 -= b;
-            a.1 -= b;
-        };
-        for /= call |a:&mut Pair, b:&i32| {
-            a.0 /= b;
-            a.1 /= b;
-        };
-        for *= call |a:&mut Pair, b:&i32| {
-            a.0 *= b;
-            a.1 *= b;
-        };
-        for %= call |a:&mut Pair, b:&i32| {
-            a.0 %= b;
-            a.1 %= b;
-        };
-        for &= call |a:&mut Pair, b:&i32| {
-            a.0 &= b;
-            a.1 &= b;
-        };
-        for |= call |a:&mut Pair, b:&i32| {
-            a.0 |= b;
-            a.1 |= b;
-        };
-        for ^= call |a:&mut Pair, b:&i32| {
-            a.0 ^= b;
-            a.1 ^= b;
-        };
-        for <<= call |a:&mut Pair, b:&i32| {
-            a.0 <<= b;
-            a.1 <<= b;
-        };
-        for >>= call |a:&mut Pair, b:&i32| {
-            a.0 >>= b;
-            a.1 >>= b;
-        };
-    );
-    
-    #[test]
-    fn all_ops_own_asgn_test() {
-        let mut c = Pair(10, 5);
-        let b = 2;
+use gen_ops::{gen_ops, gen_ops_ex};
+use paste;
 
-        c += b;
-        assert_eq!(c, Pair(12, 7));
+const EXPECTED_RES:[(i32, i32);10] = [
+    (7, 5),// +
+    (3, 1),// -
+    (10, 6),// *
+    (2, 1),// /
+    (1, 1),// %
+    (0, 2),// &
+    (7, 3),// |
+    (7, 1),// ^
+    (20, 12),// <<
+    (1, 0) // >>
+];
 
-        c -= b;
-        assert_eq!(c, Pair(10, 5));
+macro_rules! generate_asgn_test {
+    ((refs $lr:tt $rr:tt) $($ex:tt)?) => {
+        crate::paste::paste! {
+            mod [< $lr $rr $($ex _)? asgn_test >] {
+                use super::*;
+                #[derive(Clone, Copy, PartialEq, Debug)]
+                struct IntPair(pub i32, pub i32);
 
-        c *= b;
-        assert_eq!(c, Pair(20, 10));
+                impl From<(i32, i32)> for IntPair {
+                    #[inline]
+                    fn from((a,b):(i32, i32))->IntPair {
+                        IntPair(a,b)
+                    }
+                }
+                
+                generate_asgn_macro!($lr $rr $($ex)?);
 
-        c /= b;
-        assert_eq!(c, Pair(10, 5));
+                #[test]
+                fn [< $lr $rr $($ex _)? asgn_test >]() {
+                    #[allow(unused_mut)]
+                    let mut b = 2;
 
-        c <<= b;
-        assert_eq!(c, Pair(40, 20));
-
-        c >>= b;
-        assert_eq!(c, Pair(10, 5));
-
-        c = Pair(10, 5); 
-        c %= b;
-        assert_eq!(c, Pair(0, 1));
-
-        c = Pair(10, 5);
-        c &= b;
-        assert_eq!(c, Pair(2, 0));
-        
-        c =Pair(10, 5);
-        c |= b;
-        assert_eq!(c, Pair(10, 7));
-        
-        c =Pair(10, 5);
-        c ^= b;
-        assert_eq!(c, Pair(8, 7));
-    }
+                    gen_asserts!(b (refs $lr $rr));
+                }
+            }
+        }
+    };
 }
 
-mod all_ops_mut {
+macro_rules! generate_asgn_macro {
+    (@ex ($ltype:ty = $($l:tt)?) ($rtype:ty = $($r:tt)?) ex) => {
+        gen_ops_ex!(
+            types $($l)? $ltype , $($r)? $rtype;
+            for += call |a:&mut IntPair, b:&i32| {
+                a.0 += b;
+                a.1 += b;
+            };
+            for -= call |a:&mut IntPair, b:&i32| {
+                a.0 -= b;
+                a.1 -= b;
+            };
+            for /= call |a:&mut IntPair, b:&i32| {
+                a.0 /= b;
+                a.1 /= b;
+            };
+            for *= call |a:&mut IntPair, b:&i32| {
+                a.0 *= b;
+                a.1 *= b;
+            };
+            for %= call |a:&mut IntPair, b:&i32| {
+                a.0 %= b;
+                a.1 %= b;
+            };
+            for &= call |a:&mut IntPair, b:&i32| {
+                a.0 &= b;
+                a.1 &= b;
+            };
+            for |= call |a:&mut IntPair, b:&i32| {
+                a.0 |= b;
+                a.1 |= b;
+            };
+            for ^= call |a:&mut IntPair, b:&i32| {
+                a.0 ^= b;
+                a.1 ^= b;
+            };
+            for <<= call |a:&mut IntPair, b:&i32| {
+                a.0 <<= b;
+                a.1 <<= b;
+            };
+            for >>= call |a:&mut IntPair, b:&i32| {
+                a.0 >>= b;
+                a.1 >>= b;
+            };
+        );
+    };
+    (@ex ($ltype:ty) ($rtype:ty)) => {
+        gen_ops!(
+            types $ltype , $rtype;
+            for += call |a:&mut IntPair, b:&i32| {
+                a.0 += b;
+                a.1 += b;
+            };
+            for -= call |a:&mut IntPair, b:&i32| {
+                a.0 -= b;
+                a.1 -= b;
+            };
+            for /= call |a:&mut IntPair, b:&i32| {
+                a.0 /= b;
+                a.1 /= b;
+            };
+            for *= call |a:&mut IntPair, b:&i32| {
+                a.0 *= b;
+                a.1 *= b;
+            };
+            for %= call |a:&mut IntPair, b:&i32| {
+                a.0 %= b;
+                a.1 %= b;
+            };
+            for &= call |a:&mut IntPair, b:&i32| {
+                a.0 &= b;
+                a.1 &= b;
+            };
+            for |= call |a:&mut IntPair, b:&i32| {
+                a.0 |= b;
+                a.1 |= b;
+            };
+            for ^= call |a:&mut IntPair, b:&i32| {
+                a.0 ^= b;
+                a.1 ^= b;
+            };
+            for <<= call |a:&mut IntPair, b:&i32| {
+                a.0 <<= b;
+                a.1 <<= b;
+            };
+            for >>= call |a:&mut IntPair, b:&i32| {
+                a.0 >>= b;
+                a.1 >>= b;
+            };
+        );
+    };
 
-    use gen_ops::gen_ops;
-    
-    #[derive(Copy, Clone, PartialEq, Debug)]
-    struct Pair(pub i32, pub i32);
+    //rhs
+    (@ex_rhs ($l:ty) own_) => {
+        generate_asgn_macro!(@ex ($l) (i32));
+    };
+    (@ex_rhs ($l:ty) ref_) => {
+        generate_asgn_macro!(@ex ($l) (&i32));
+    };
+    (@ex_rhs ($l:ty) mut_) => {
+        generate_asgn_macro!(@ex ($l) (&mut i32));
+    };
+    (@ex_rhs ($lhs:ty =$($l:tt)?) own_ ex) => {
+        generate_asgn_macro!(@ex ($lhs =$($l)?) (i32 =) ex);
+    };
+    (@ex_rhs ($lhs:ty =$($l:tt)?) ref_ ex) => {
+        generate_asgn_macro!(@ex ($lhs =$($l)?) (&i32 =) ex);
+    };
+    (@ex_rhs ($lhs:ty =$($l:tt)?) mut_ ex) => {
+        generate_asgn_macro!(@ex ($lhs =$($l)?) (&mut i32 =) ex);
+    };
+    (@ex_rhs ($lhs:ty =$($l:tt)?) ref_own_ ex) => {
+        generate_asgn_macro!(@ex ($lhs =$($l)?) (i32 =ref) ex);
+    };
+    (@ex_rhs ($lhs:ty =$($l:tt)?) all_ ex) => {
+        generate_asgn_macro!(@ex ($lhs =$($l)?) (i32 = mut) ex);
+    };
 
-    gen_ops!(
-        types &mut Pair, i32;
-        for += call |a:&mut Pair, b:&i32| {
-            a.0 += b;
-            a.1 += b;
-        };
-        for -= call |a:&mut Pair, b:&i32| {
-            a.0 -= b;
-            a.1 -= b;
-        };
-        for /= call |a:&mut Pair, b:&i32| {
-            a.0 /= b;
-            a.1 /= b;
-        };
-        for *= call |a:&mut Pair, b:&i32| {
-            a.0 *= b;
-            a.1 *= b;
-        };
-        for %= call |a:&mut Pair, b:&i32| {
-            a.0 %= b;
-            a.1 %= b;
-        };
-        for &= call |a:&mut Pair, b:&i32| {
-            a.0 &= b;
-            a.1 &= b;
-        };
-        for |= call |a:&mut Pair, b:&i32| {
-            a.0 |= b;
-            a.1 |= b;
-        };
-        for ^= call |a:&mut Pair, b:&i32| {
-            a.0 ^= b;
-            a.1 ^= b;
-        };
-        for <<= call |a:&mut Pair, b:&i32| {
-            a.0 <<= b;
-            a.1 <<= b;
-        };
-        for >>= call |a:&mut Pair, b:&i32| {
-            a.0 >>= b;
-            a.1 >>= b;
-        };
-    );
-
-    #[test]
-    fn all_ops_mut_asgn_test() {
-        let mut a = Pair(10, 5);
-        let b = 2;
-        {
-            let mut c;
-            c = &mut a;
-            c += b;
-            assert_eq!(*c, Pair(12, 7));
-
-            c -= b;
-            assert_eq!(*c, Pair(10, 5));
-
-            c *= b;
-            assert_eq!(*c, Pair(20, 10));
-
-            c /= b;
-            assert_eq!(*c, Pair(10, 5));
-
-            c <<= b;
-            assert_eq!(*c, Pair(40, 20));
-
-            c >>= b;
-            assert_eq!(*c, Pair(10, 5));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c %= b;
-            assert_eq!(*c, Pair(0, 1));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c &= b;
-            assert_eq!(*c, Pair(2, 0));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c |= b;
-            assert_eq!(*c, Pair(10, 7));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c ^= b;
-            assert_eq!(*c, Pair(8, 7));
-        }
-    }
+    //lhs
+    (own_ $r:tt) => {
+        generate_asgn_macro!(@ex_rhs (IntPair) $r);
+    };
+    (mut_ $r:tt ) => {
+        generate_asgn_macro!(@ex_rhs (&mut IntPair) $r);
+    };
+    (own_ $r:tt ex) => {
+        generate_asgn_macro!(@ex_rhs (IntPair =) $r ex);
+    };
+    (mut_ $r:tt ex) => {
+        generate_asgn_macro!(@ex_rhs (&mut IntPair =) $r ex);
+    };
+    (all_ $r:tt ex) => {
+        generate_asgn_macro!(@ex_rhs (IntPair =mut) $r ex);
+    };
 }
 
-mod all_ops_ex {
-    use gen_ops::gen_ops_ex;
-    
-    #[derive(Copy, Clone, PartialEq, Debug)]
-    struct Pair(pub i32, pub i32);
 
-    gen_ops_ex!(
-        types mut Pair, mut i32;
-        for += call |a:&mut Pair, b:&i32| {
-            a.0 += b;
-            a.1 += b;
-        };
-        for -= call |a:&mut Pair, b:&i32| {
-            a.0 -= b;
-            a.1 -= b;
-        };
-        for /= call |a:&mut Pair, b:&i32| {
-            a.0 /= b;
-            a.1 /= b;
-        };
-        for *= call |a:&mut Pair, b:&i32| {
-            a.0 *= b;
-            a.1 *= b;
-        };
-        for %= call |a:&mut Pair, b:&i32| {
-            a.0 %= b;
-            a.1 %= b;
-        };
-        for &= call |a:&mut Pair, b:&i32| {
-            a.0 &= b;
-            a.1 &= b;
-        };
-        for |= call |a:&mut Pair, b:&i32| {
-            a.0 |= b;
-            a.1 |= b;
-        };
-        for ^= call |a:&mut Pair, b:&i32| {
-            a.0 ^= b;
-            a.1 ^= b;
-        };
-        for <<= call |a:&mut Pair, b:&i32| {
-            a.0 <<= b;
-            a.1 <<= b;
-        };
-        for >>= call |a:&mut Pair, b:&i32| {
-            a.0 >>= b;
-            a.1 >>= b;
-        };
-    );
+macro_rules! gen_asserts {
+    (@ops (refs ($ref:tt $res:ident) ($r:expr)) ($op1:tt $ind1:tt)  $(($op:tt $ind:tt))+) => {
+        gen_asserts!(@ops2 (refs ($ref $res) ($r)) ($op1 $ind1));
+        gen_asserts!(@ops (refs ($ref $res) ($r)) $(($op $ind))+);
+    };
+    (@ops (refs ($ref:tt $res:ident) ($r:expr)) ($op1:tt $ind1:tt)) => {
+        gen_asserts!(@ops2 (refs ($ref $res) ($r)) ($op1 $ind1));
+    };
 
-    #[test]
-    fn all_ops_mut_ex_asgn_test() {
-        let mut a = Pair(10, 5);
-        let mut b = 2;
+    (@ops2 (refs (mut_ $res:ident) ($r:expr)) ($op1:tt $ind1:tt)) => {
         {
-            let mut c;
-            c = &mut a;
-            c += &mut b;
-            assert_eq!(*c, Pair(12, 7));
-            c += &b;
-            assert_eq!(*c, Pair(14, 9));
-            c += b;
-            assert_eq!(*c, Pair(16, 11));
-
-            c -= &mut b;
-            assert_eq!(*c, Pair(14, 9));
-            c -= &b;
-            assert_eq!(*c, Pair(12, 7));
-            c -= b;
-            assert_eq!(*c, Pair(10, 5));
-
-            c *= &mut b;
-            assert_eq!(*c, Pair(20, 10));
-            c *= &b;
-            assert_eq!(*c, Pair(40, 20));
-            c *= b;
-            assert_eq!(*c, Pair(80, 40));
-
-            c /= &mut b;
-            assert_eq!(*c, Pair(40, 20));
-            c /= &b;
-            assert_eq!(*c, Pair(20, 10));
-            c /= b;
-            assert_eq!(*c, Pair(10, 5));
-
-            c <<= &mut b;
-            assert_eq!(*c, Pair(40, 20));
-            c <<= &b;
-            assert_eq!(*c, Pair(160, 80));
-            c <<= b;
-            assert_eq!(*c, Pair(640, 320));
-
-            c >>= &mut b;
-            assert_eq!(*c, Pair(160, 80));
-            c >>= &b;
-            assert_eq!(*c, Pair(40, 20));
-            c >>= b;
-            assert_eq!(*c, Pair(10, 5));
+            let mut x = &mut $res [$ind1];
+            x $op1 $r;
         }
-        a = Pair(10, 5);
+    };
+    (@ops2 (refs (own_ $res:ident) ($r:expr)) ($op1:tt $ind1:tt)) => {
+        $res[$ind1] $op1 $r;
+    };
+
+    (@asrt $l:tt ($r:expr)) => {
         {
-            let mut c;
-            c = &mut a;
-            c %= &mut b;
-            assert_eq!(*c, Pair(0, 1));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c %= &b;
-            assert_eq!(*c, Pair(0, 1));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c %= b;
-            assert_eq!(*c, Pair(0, 1));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c &= &mut b;
-            assert_eq!(*c, Pair(2, 0));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c &= &b;
-            assert_eq!(*c, Pair(2, 0));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c &= b;
-            assert_eq!(*c, Pair(2, 0));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c |= &mut b;
-            assert_eq!(*c, Pair(10, 7));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c |= &b;
-            assert_eq!(*c, Pair(10, 7));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c |= b;
-            assert_eq!(*c, Pair(10, 7));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c ^= &mut b;
-            assert_eq!(*c, Pair(8, 7));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c ^= &b;
-            assert_eq!(*c, Pair(8, 7));
-        }
-        a = Pair(10, 5);
-        {
-            let mut c;
-            c = &mut a;
-            c ^= b;
-            assert_eq!(*c, Pair(8, 7));
-        }
-    }
+            let mut actual_res = [IntPair(5, 3); 10];
+            gen_asserts!(@ops (refs ($l actual_res) ($r)) 
+            (+= 0) (-= 1) (*= 2) (/= 3) (%= 4)
+            (&= 5) (|= 6) (^= 7) (<<= 8) (>>= 9));
 
+            actual_res.iter().zip(EXPECTED_RES).for_each(|(res,exp)|{
+                assert_eq!(*res, Into::<IntPair>::into(exp), "\nresult={:?}", actual_res);
+            });
+        }
+    };
 
-    #[test]
-    fn all_ops_own_ex_asgn_test() {
-        let mut c = Pair(10, 5);
-        let mut b = 2;
+    //lhs
+    ((refs own_ ($r:expr))) => {
+        gen_asserts!(@asrt own_ ($r));
+    };
+    ((refs mut_ ($r:expr))) => {
+        gen_asserts!(@asrt mut_ ($r));
+    };
+    ((refs all_ ($r:expr))) => {
+        gen_asserts!(@asrt own_ ($r));
+        gen_asserts!(@asrt mut_ ($r));
+    };
 
-        c += &mut b;
-        assert_eq!(c, Pair(12, 7));
-        c += &b;
-        assert_eq!(c, Pair(14, 9));
-        c += b;
-        assert_eq!(c, Pair(16, 11));
-
-        c -= &mut b;
-        assert_eq!(c, Pair(14, 9));
-        c -= &b;
-        assert_eq!(c, Pair(12, 7));
-        c -= b;
-        assert_eq!(c, Pair(10, 5));
-
-        c *= &mut b;
-        assert_eq!(c, Pair(20, 10));
-        c *= &b;
-        assert_eq!(c, Pair(40, 20));
-        c *= b;
-        assert_eq!(c, Pair(80, 40));
-
-        c /= &mut b;
-        assert_eq!(c, Pair(40, 20));
-        c /= &b;
-        assert_eq!(c, Pair(20, 10));
-        c /= b;
-        assert_eq!(c, Pair(10, 5));
-
-        c <<= &mut b;
-        assert_eq!(c, Pair(40, 20));
-        c <<= &b;
-        assert_eq!(c, Pair(160, 80));
-        c <<= b;
-        assert_eq!(c, Pair(640, 320));
-
-        c >>= &mut b;
-        assert_eq!(c, Pair(160, 80));
-        c >>= &b;
-        assert_eq!(c, Pair(40, 20));
-        c >>= b;
-        assert_eq!(c, Pair(10, 5));
-
-        c = Pair(10, 5);
-        c %= &mut b;
-        assert_eq!(c, Pair(0, 1));
-        c = Pair(10, 5);
-        c %= &b;
-        assert_eq!(c, Pair(0, 1));
-        c = Pair(10, 5);
-        c %= b;
-        assert_eq!(c, Pair(0, 1));
-
-        c = Pair(10, 5);
-        c &= &mut b;
-        assert_eq!(c, Pair(2, 0));
-        c = Pair(10, 5);
-        c &= &b;
-        assert_eq!(c, Pair(2, 0));
-        c = Pair(10, 5);
-        c &= b;
-        assert_eq!(c, Pair(2, 0));
-        
-        c =Pair(10, 5);
-        c |= &mut b;
-        assert_eq!(c, Pair(10, 7));
-        c =Pair(10, 5);
-        c |= &b;
-        assert_eq!(c, Pair(10, 7));
-        c =Pair(10, 5);
-        c |= b;
-        assert_eq!(c, Pair(10, 7));
-        
-        c =Pair(10, 5);
-        c ^= &mut b;
-        assert_eq!(c, Pair(8, 7));
-        c =Pair(10, 5);
-        c ^= &b;
-        assert_eq!(c, Pair(8, 7));
-        c =Pair(10, 5);
-        c ^= b;
-        assert_eq!(c, Pair(8, 7));
-    }
+    //rhs
+    ($b:ident (refs $l:tt own_)) => {
+        gen_asserts!((refs $l ($b)));
+    };
+    ($b:ident (refs $l:tt ref_)) => {
+        gen_asserts!((refs $l (&$b)));
+    };
+    ($b:ident (refs $l:tt mut_)) => {
+        gen_asserts!((refs $l (&mut $b)));
+    };
+    ($b:ident (refs $l:tt ref_own_)) => {
+        gen_asserts!((refs $l ($b)));
+        gen_asserts!((refs $l (&$b)));
+    };
+    ($b:ident (refs $l:tt all_)) => {
+        gen_asserts!((refs $l ($b)));
+        gen_asserts!((refs $l (&$b)));
+        gen_asserts!((refs $l (&mut $b)));
+    };
 }
+
+
+generate_asgn_test!((refs own_ own_));
+generate_asgn_test!((refs own_ ref_));
+generate_asgn_test!((refs own_ mut_));
+
+generate_asgn_test!((refs mut_ own_));
+generate_asgn_test!((refs mut_ ref_));
+generate_asgn_test!((refs mut_ mut_));
+
+generate_asgn_test!((refs own_ ref_own_) ex);
+generate_asgn_test!((refs own_ all_) ex);
+generate_asgn_test!((refs mut_ ref_own_) ex);
+generate_asgn_test!((refs mut_ all_) ex);
+
+generate_asgn_test!((refs all_ own_) ex);
+generate_asgn_test!((refs all_ ref_) ex);
+generate_asgn_test!((refs all_ mut_) ex);
+generate_asgn_test!((refs all_ ref_own_) ex);
+generate_asgn_test!((refs all_ all_) ex);

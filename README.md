@@ -69,8 +69,6 @@ println!("a - b = {:?}", a - b); // a - b = Pair(2, -4)
 Implements commutative operations. 
 
 ```rust
-# #[macro_use] extern crate gen_ops;
-# use std::ops::{Mul, BitAnd};
 #[derive(Debug, Copy, Clone, PartialEq)]
 struct Pair<T>(pub T, pub T);
 
@@ -125,7 +123,7 @@ gen_ops_comm_ex!(
     <T>;
     types ref Pair<T>, i32 => Pair<T>;
     for * call |a: &Pair<T>, b:&i32| Pair(a.0 * *b, a.1 * *b);
-    where T: Mul<i32, Output=T> + BitAnd<i32, Output=T> + Copy
+    where T: Mul<i32, Output=T> + Copy
 );
 
 let a = Pair(12, 3);
@@ -140,9 +138,10 @@ For more details see [docs](https://docs.rs/gen_ops).
 
 # Roadmap
 To do:
+- [ ] Where clause for each operator
 - [x] Const generic parameters
 - [ ] Lifetime parameters
-- [ ] Better testing
+- [x] Better testing
 - [ ] Adding github wiki
 
 > **Warning**
