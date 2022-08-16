@@ -4,21 +4,21 @@ macro_rules! _gen_ops_internal_un {
     (($($gen:tt)*);
     types $lhs:ty => $output:ty;
     refs $lref:ident;
-    for $op:tt call $func:expr;
-    $(for $op2:tt call $func2:expr;)+
+    for $op:tt call $func:expr; $((where $($where1:tt)+) $(;)?)?
+    $(for $op2:tt call $func2:expr;$((where $($where2:tt)+) $(;)?)?)+
     $(where $($where:tt)+)?) => {
         $crate::_gen_ops_internal_un!(
             ($($gen)*);
             types $lhs => $output;
             refs $lref;
-            for $op call $func;
+            for $op call $func;$((where $($where1)+))?
             $(where $($where)+)?
         );
         $crate::_gen_ops_internal_un!(
             ($($gen)*);
             types $lhs => $output;
             refs $lref;
-            $(for $op2 call $func2;)+
+            $(for $op2 call $func2;$((where $($where2)+))?)+
             $(where $($where)+)?
         );
     };
@@ -26,26 +26,26 @@ macro_rules! _gen_ops_internal_un {
     types $lhs:ty => $output:ty;
     refs $lref:ident;
     for - call $func:expr;
-    $(where $($where:tt)+)?) => {
+    $($rest:tt)*) => {
         $crate::_core_impl_un!(
             ($($gen)*);
             types $lhs => $output;
             refs $lref;
             for [Neg neg] call $func;
-            $(where $($where)+)?
+            $($rest)*
         );
     };
     (($($gen:tt)*);
     types $lhs:ty => $output:ty;
     refs $lref:ident;
     for ! call $func:expr;
-    $(where $($where:tt)+)?) => {
+    $($rest:tt)*) => {
         $crate::_core_impl_un!(
             ($($gen)*);
             types $lhs => $output;
             refs $lref;
             for [Not not] call $func;
-            $(where $($where)+)?
+            $($rest)*
         );
     };
 }

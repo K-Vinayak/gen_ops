@@ -46,4 +46,3 @@ macro_rules! _inner_func_call_bin {
         $crate::_inner_func_call_bin!($rref $rhs $lref $lhs $func)
     };
 }
-
