@@ -1,6 +1,11 @@
-Rust macros for operator overloading of generic types. 
+# gen_ops: Rust macros for operator overloading of generic types. 
 
-# Usage
+[![build](https://img.shields.io/github/workflow/status/K-Vinayak/gen_ops/Rust?logo=github&style=flat-square)](https://github.com/K-Vinayak/gen_ops/actions?workflow=rust)
+[![docs](https://img.shields.io/docsrs/gen_ops/latest?style=flat-square)](https://docs.rs/gen_ops/)
+[![crate](https://img.shields.io/crates/v/gen_ops?style=flat-square)](https://crates.io/gen_ops)
+[![license](https://img.shields.io/crates/l/gen_ops?style=flat-square)](https://github.com/K-Vinayak/gen_ops/blob/main/LICENSE.md)
+
+## Usage
 
 The macros need four statements 
 
