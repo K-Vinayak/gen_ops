@@ -27,7 +27,7 @@ const EXPECTED_RES_COMM:[(i32, i32);5] = [
 macro_rules! generate_bin_test {
     ($comm:tt (refs $lr:tt $rr:tt) $($ex:tt)?) => {
         crate::paste::paste! {
-            mod [< $lr $rr $comm $(_$ex)? _bin_test >] {
+            mod [< $lr $rr $comm $(_$ex)? _bin >] {
                 use super::*;
                 #[derive(Clone, Copy, PartialEq, Debug)]
                 struct IntPair(pub i32, pub i32);

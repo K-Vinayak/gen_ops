@@ -20,7 +20,7 @@ const EXPECTED_RES:[(i32, i32);10] = [
 macro_rules! generate_asgn_test {
     ((refs $lr:tt $rr:tt) $($ex:tt)?) => {
         crate::paste::paste! {
-            mod [< $lr $rr $($ex _)? asgn_test >] {
+            mod [< $lr $rr $($ex _)? asgn >] {
                 use super::*;
                 #[derive(Clone, Copy, PartialEq, Debug)]
                 struct IntPair(pub i32, pub i32);
