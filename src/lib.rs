@@ -298,8 +298,12 @@ mod gen_ops_asgn;
 ///     <T>;
 ///     types Pair<T>, Pair<T> => Pair<T>;
 ///     for + call |a: &Pair<T>, b: &Pair<T>| Pair(a.0 + b.0, a.1 + b.1);
+///     (where T: Add<Output=T>)
+///
 ///     for - call |a: &Pair<T>, b: &Pair<T>| Pair(a.0 - b.0, a.1 - b.1);
-///     where T: Add<Output=T> + Sub<Output=T> + Copy
+///     (where T: Sub<Output=T>)
+/// 
+///     where T: Copy
 /// );
 /// 
 /// # fn main() {
@@ -500,8 +504,12 @@ macro_rules! gen_ops {
 ///     <T>;
 ///     types Pair<T>, i32 => Pair<T>;
 ///     for * call |a: &Pair<T>, b:&i32| Pair(a.0 * *b, a.1 * *b);
+///     (where T: Mul<i32, Output=T>)
+/// 
 ///     for & call |a: &Pair<T>, b:&i32| Pair(a.0 & *b, a.1 & *b);
-///     where T: Mul<i32, Output=T> + BitAnd<i32, Output=T> + Copy
+///     (where T: BitAnd<i32, Output=T>)
+/// 
+///     where T: Copy
 /// );
 /// 
 /// # fn main() {
@@ -851,7 +859,7 @@ macro_rules! gen_ops_ex {
 ///     <T>;
 ///     types ref Pair<T>, i32 => Pair<T>;
 ///     for * call |a: &Pair<T>, b:&i32| Pair(a.0 * *b, a.1 * *b);
-///     where T: Mul<i32, Output=T> + BitAnd<i32, Output=T> + Copy
+///     where T: Mul<i32, Output=T> + Copy
 /// );
 /// 
 /// # fn main() {
