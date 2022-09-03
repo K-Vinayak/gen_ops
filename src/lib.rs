@@ -177,8 +177,10 @@
 //! # }
 //! ```
 //! 
+//! ### Where clause for each operator
+//! 
 //! Optionally you can add where clause to be used only with one operator. 
-//! Add this statement after the semicolon.
+//! Add this statement after the semicolon and enclosed in parentheses. 
 //! ### Example
 //! ```
 //! # #[macro_use] extern crate gen_ops;

@@ -11,7 +11,7 @@ The macros need four statements
 
 1. (Optional) Generic parameter names
 2. Type signature or extended type signature
-3. Callable expressions for each operator
+3. Callable expressions for each operator, and optionally, where clause for each operator
 4. (Optional) Where clause for generic parameters
 
 > **Note** 
@@ -34,9 +34,13 @@ gen_ops!(
     types Pair<T>, Pair<T> => Pair<T>; // Type signature
     for + call |a: &Pair<T>, b: &Pair<T>| {
         Pair(a.0 + b.0, a.1 + b.1)
-    };
-    for - call sub_pair;               // Callable expressions for operators
-    where T: Add<Output=T> + Sub<Output=T> + Copy
+    };                // Callable expressions for operators
+    (where T: Add<Output=T>)
+
+    for - call sub_pair;  // Or use an existing function
+    (where T: Sub<Output=T>) //where clause for - operator only
+
+    where T: Copy //Where clause for all impls
 );
 
 let a = Pair(2, 3);
@@ -58,8 +62,12 @@ gen_ops!(
     <T>;
     types Pair<T>, Pair<T> => Pair<T>;
     for + call |a: &Pair<T>, b: &Pair<T>| Pair(a.0 + b.0, a.1 + b.1);
+    (where T: Add<Output=T>)
+
     for - call |a: &Pair<T>, b: &Pair<T>| Pair(a.0 - b.0, a.1 - b.1);
-    where T: Add<Output=T> + Sub<Output=T> + Copy
+    (where T: Sub<Output=T>)
+
+    where T: Copy
 );
 
 let a = Pair(10, 5);
@@ -81,8 +89,12 @@ gen_ops_comm!(
     <T>;
     types Pair<T>, i32 => Pair<T>;
     for * call |a: &Pair<T>, b:&i32| Pair(a.0 * *b, a.1 * *b);
+    (where T: Mul<i32, Output=T>)
+
     for & call |a: &Pair<T>, b:&i32| Pair(a.0 & *b, a.1 & *b);
-    where T: Mul<i32, Output=T> + BitAnd<i32, Output=T> + Copy
+    (where T: BitAnd<i32, Output=T>)
+
+    where T: Copy
 );
 let a = Pair(12, 3);
 
@@ -143,7 +155,7 @@ For more details see [docs](https://docs.rs/gen_ops).
 
 # Roadmap
 To do:
-- [ ] Where clause for each operator
+- [x] Where clause for each operator
 - [x] Const generic parameters
 - [ ] Lifetime parameters
 - [x] Better testing
