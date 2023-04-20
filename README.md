@@ -1,4 +1,6 @@
-# gen_ops: Rust macros for operator overloading of generic types. 
+# gen_ops
+
+Rust macros for operator overloading of generic types. 
 
 [![build](https://img.shields.io/github/actions/workflow/status/K-Vinayak/gen_ops/rust.yml?logo=github&style=flat-square)](https://github.com/K-Vinayak/gen_ops/actions/workflows/rust.yml)
 [![docs](https://img.shields.io/docsrs/gen_ops/latest?style=flat-square)](https://docs.rs/gen_ops/)
@@ -32,6 +34,12 @@ where T: Sub<Output=T> + Copy {
 gen_ops!(
     <T>;                               // Generic parameter names
     types Pair<T>, Pair<T> => Pair<T>; // Type signature
+
+    //add doc strings like below
+
+    /// Add two pairs
+    /// 
+    /// Returns `Pair`
     for + call |a: &Pair<T>, b: &Pair<T>| {
         Pair(a.0 + b.0, a.1 + b.1)
     };                // Callable expressions for operators
@@ -152,14 +160,6 @@ println!("&a * 5 = {:?}", &a * 5); //&a * 5 = Pair(60, 15)
 
 # Docs
 For more details see [docs](https://docs.rs/gen_ops).
-
-# Roadmap
-To do:
-- [x] Where clause for each operator
-- [x] Const generic parameters
-- [ ] Lifetime parameters
-- [x] Better testing
-- [ ] Adding github wiki
 
 > **Warning**
 > The vesions 0.1.x might not be compatible with each other

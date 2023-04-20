@@ -176,6 +176,21 @@
 //! # assert_eq!((a + b).0, 9.);
 //! # }
 //! ```
+//! ### Doc Strings
+//! 
+//! You can add doc string above each `for` statements. 
+//! 
+//! ```rust, ignore
+//! gen_ops!(
+//!     ...
+//!     /// Docs here
+//!     /// Docs here
+//!     for + call ....
+//! 
+//!     /// Docs here
+//!     for - call ...
+//! )
+//! ```
 //! 
 //! ### Where clause for each operator
 //! 
