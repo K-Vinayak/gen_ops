@@ -8,7 +8,7 @@ macro_rules! _core_impl_bin {
     for [$trait:ident $method:ident] call $func:expr;
     $((where $($where1:tt)+))?
     $(where $($where:tt)+)?) => {
-        impl $($gen)* ::std::ops::$trait<$crate::_refmut!($rref $rhs)> for $crate::_refmut!($lref $lhs)
+        impl $($gen)* ::core::ops::$trait<$crate::_refmut!($rref $rhs)> for $crate::_refmut!($lref $lhs)
         where $($($where)+ ,)? $($($where1)+)? {
             type Output = $out;
             $(#[$attr])*
@@ -30,7 +30,7 @@ macro_rules! _core_impl_asgn {
     for [$trait:ident $method:ident] call $func:expr;
     $((where $($where1:tt)+))?
     $(where $($where:tt)+)?) => {
-        impl $($gen)* ::std::ops::$trait<$crate::_refmut!($rref $rhs)> for $crate::_refmut!($lref $lhs)
+        impl $($gen)* ::core::ops::$trait<$crate::_refmut!($rref $rhs)> for $crate::_refmut!($lref $lhs)
         where $($($where)+ ,)? $($($where1)+)? {
             $(#[$attr])*
             #[inline]
@@ -51,7 +51,7 @@ macro_rules! _core_impl_un {
     for [$trait:ident $method:ident] call $func:expr;
     $((where $($where1:tt)+))?
     $(where $($where:tt)+)?) => {
-        impl $($gen)* std::ops::$trait for $crate::_refmut!($lref $lhs)
+        impl $($gen)* ::core::ops::$trait for $crate::_refmut!($lref $lhs)
         where $($($where)+ ,)? $($($where1)+)? {
             type Output = $out;
             $(#[$attr])*
