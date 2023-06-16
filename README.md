@@ -161,9 +161,6 @@ println!("&a * 5 = {:?}", &a * 5); //&a * 5 = Pair(60, 15)
 # Docs
 For more details see [docs](https://docs.rs/gen_ops).
 
-> **Warning**
-> The vesions 0.1.x might not be compatible with each other
-
 # Inspiration
 
 This project is inspired by [auto_ops](https://crates.io/crates/auto_ops)
